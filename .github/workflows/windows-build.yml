@@ -19,10 +19,8 @@ jobs:
       - name: Install Rust base
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: './src-tauri -> target'
+      # We hebben de rust-cache stap hier tijdelijk weggehaald 
+      # zodat GitHub gedwongen wordt alles fris te scannen.
 
       - name: Install dependencies
         run: npm install
