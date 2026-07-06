@@ -1,7 +1,7 @@
 name: Build GroqChat Windows
 
 on:
-  workflow_dispatch: # Zorgt ervoor dat je de build handmatig kunt starten via de Actions-knop
+  workflow_dispatch:
 
 jobs:
   build-tauri:
@@ -14,7 +14,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24 # Node 24 om deprecation-waarschuwingen te voorkomen
+          node-version: 24
 
       - name: Install Rust base
         uses: dtolnay/rust-toolchain@stable
@@ -22,7 +22,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './src-tauri/src -> target'
+          workspaces: './src-tauri -> target'
 
       - name: Install dependencies
         run: npm install
@@ -32,7 +32,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          projectPath: src-tauri/src # Dwingt Tauri om in de map te kijken waar tauri.conf.json echt staat
           tagName: v1.0.0
           releaseName: 'GroqChat Production v1.0.0'
           releaseBody: 'Automatische Windows build van GroqChat Lite.'
