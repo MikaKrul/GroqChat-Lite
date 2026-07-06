@@ -1,10 +1,12 @@
 name: Build GroqChat Windows
+
 on:
-  workflow_dispatch: # Hierdoor krijg je een handmatige startknop op de website
+  workflow_dispatch: # Zorgt ervoor dat je de build handmatig kunt starten via de Actions-knop
 
 jobs:
-  build-windows:
+  build-tauri:
     runs-on: windows-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -12,16 +14,22 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 20
+          cache: 'npm'
 
-      - name: Install Rust stable
+      - name: Install Rust base
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install Node dependencies
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install dependencies
         run: npm install
 
       - name: Build Tauri Desktop App
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
