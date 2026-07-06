@@ -24,28 +24,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # --- DIAGNOSTISCHE STAPPEN (FRIS PERSPECTIEF) ---
-      - name: Waar zijn we en wat staat hier? (Debug)
-        run: |
-          echo "Huidige map:"
-          pwd
-          echo "Bestanden in de root:"
-          dir
-          echo "Bestanden in src-tauri:"
-          dir src-tauri
-        shell: pwsh
-
-      - name: Wat zit er NU in tauri.conf.json op de runner? (Debug)
-        run: |
-          if (Test-Path src-tauri/tauri.conf.json) {
-            type src-tauri/tauri.conf.json
-          } else {
-            echo "FOUT: src-tauri/tauri.conf.json bestaat GEEN EENS op de runner!"
-          }
-        shell: pwsh
-      # ------------------------------------------------
-
-      - name: Handmatige Tauri Build (Betrouwbaarder)
-        run: npx tauri build
+      - name: Build Tauri Desktop App
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Dit zorgt ervoor dat de bestanden als artifact aan de run worden gekoppeld:
+          uploadWorkflowArtifacts: true 
+          
+          # We zetten deze op true/false om te voorkomen dat hij alsnog een release probeert te maken
+          releaseDraft: false
+          prerelease: false
