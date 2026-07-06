@@ -1,0 +1,32 @@
+name: Build GroqChat Windows
+on:
+  workflow_dispatch: # Hierdoor krijg je een handmatige startknop op de website
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Build Tauri Desktop App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v1.0.0
+          releaseName: 'GroqChat Production v1.0.0'
+          releaseBody: 'Automatische Windows build van GroqChat Lite.'
+          releaseDraft: false
+          prerelease: false
