@@ -17,10 +17,9 @@ jobs:
           node-version: 24
 
       - name: Install Rust base
-        uses: dtolnay/rust-toolchain@stable
-
-      # We hebben de rust-cache stap hier tijdelijk weggehaald 
-      # zodat GitHub gedwongen wordt alles fris te scannen.
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable # Dit lost de "'toolchain' is a required input" waarschuwing op!
 
       - name: Install dependencies
         run: npm install
