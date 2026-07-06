@@ -20,13 +20,17 @@
       },
       "externalBin": [],
       "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
+        "icon/32x32.png",
+        "icon/32x32@2x.png",
+        "icon/128x128.png",
+        "icon/128x128@2x.png",
+        "icon/icon.ico",
+        "icon/icon.png"
+        "icon/1024x1024.png",
+        "icon/256x256.png",
+        "icon/512x512.png"
       ],
-      "identifier": "com.jouwnaam.groqchat",
+      "identifier": "com.mikakrul.groqchat",
       "longDescription": "",
       "macOS": {
         "frameworks": [],
