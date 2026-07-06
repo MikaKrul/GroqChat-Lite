@@ -8,12 +8,12 @@
     "version": "1.0.0"
   },
   "tauri": {
-    "identifier": "com.mikakrul.groqchat",
     "allowlist": {
       "all": true
     },
     "bundle": {
       "active": true,
+      "identifier": "com.mikakrul.groqchat",
       "category": "DeveloperTool",
       "copyright": "",
       "deb": {
@@ -21,15 +21,15 @@
       },
       "externalBin": [],
       "icon": [
-        "../icon/32x32.png",
-        "../icon/32x32@2x.png",
-        "../icon/128x128.png",
-        "../icon/128x128@2x.png",
-        "../icon/icon.ico",
-        "../icon/icon.png",
-        "../icon/1024x1024.png",
-        "../icon/256x256.png",
-        "../icon/512x512.png"
+        "icon/32x32.png",
+        "icon/32x32@2x.png",
+        "icon/128x128.png",
+        "icon/128x128@2x.png",
+        "icon/icon.ico",
+        "icon/icon.png",
+        "icon/1024x1024.png",
+        "icon/256x256.png",
+        "icon/512x512.png"
       ],
       "longDescription": "",
       "macOS": {
