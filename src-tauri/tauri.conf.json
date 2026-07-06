@@ -8,6 +8,7 @@
     "version": "1.0.0"
   },
   "tauri": {
+    "identifier": "com.mikakrul.groqchat",
     "allowlist": {
       "all": true
     },
@@ -30,7 +31,6 @@
         "icon/256x256.png",
         "icon/512x512.png"
       ],
-      "identifier": "com.mikakrul.groqchat",
       "longDescription": "",
       "macOS": {
         "frameworks": [],
