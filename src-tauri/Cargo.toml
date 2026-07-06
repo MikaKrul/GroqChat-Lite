@@ -1,17 +1,20 @@
 [package]
 name = "groqchat-lite"
 version = "1.0.0"
-description = "A minimal Groq Chat Client"
-authors = ["You"]
+description = "GroqChat Lite Desktop App"
+authors = ["Mika Krul"]
 edition = "2021"
-rust-version = "1.60"
+rust-version = "1.65"
 
 [build-dependencies]
-tauri-build = { version = "1.5" }
+tauri-build = { version = "^1.5" }
 
 [dependencies]
+tauri = { version = "^1.5", features = ["shell-open"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
-# Gebruik deze stabiele vlag-notatie voor Tauri v1:
-tauri = { version = "1", features = ["api-all", "custom-protocol"] }
+[features]
+# Dit is de cruciale regel die nu mist in je Cargo.toml!
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
