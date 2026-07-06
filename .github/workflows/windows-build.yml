@@ -14,7 +14,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24 # Geüpgraded naar Node 24 om de deprecation te fixen
+          node-version: 24 # Node 24 om deprecation-waarschuwingen te voorkomen
 
       - name: Install Rust base
         uses: dtolnay/rust-toolchain@stable
@@ -22,7 +22,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './src-tauri -> target'
+          workspaces: './src-tauri/src -> target'
 
       - name: Install dependencies
         run: npm install
@@ -32,6 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          projectPath: src-tauri/src # Dwingt Tauri om in de map te kijken waar tauri.conf.json echt staat
           tagName: v1.0.0
           releaseName: 'GroqChat Production v1.0.0'
           releaseBody: 'Automatische Windows build van GroqChat Lite.'
