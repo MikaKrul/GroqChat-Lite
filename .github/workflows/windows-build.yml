@@ -19,18 +19,33 @@ jobs:
       - name: Install Rust base
         uses: dtolnay/rust-toolchain@v1
         with:
-          toolchain: stable # Dit lost de "'toolchain' is a required input" waarschuwing op!
+          toolchain: stable
 
       - name: Install dependencies
         run: npm install
 
-      - name: Build Tauri Desktop App
-        uses: tauri-apps/tauri-action@v1
+      # --- DIAGNOSTISCHE STAPPEN (FRIS PERSPECTIEF) ---
+      - name: Waar zijn we en wat staat hier? (Debug)
+        run: |
+          echo "Huidige map:"
+          pwd
+          echo "Bestanden in de root:"
+          dir
+          echo "Bestanden in src-tauri:"
+          dir src-tauri
+        shell: pwsh
+
+      - name: Wat zit er NU in tauri.conf.json op de runner? (Debug)
+        run: |
+          if (Test-Path src-tauri/tauri.conf.json) {
+            type src-tauri/tauri.conf.json
+          } else {
+            echo "FOUT: src-tauri/tauri.conf.json bestaat GEEN EENS op de runner!"
+          }
+        shell: pwsh
+      # ------------------------------------------------
+
+      - name: Handmatige Tauri Build (Betrouwbaarder)
+        run: npx tauri build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: v1.0.0
-          releaseName: 'GroqChat Production v1.0.0'
-          releaseBody: 'Automatische Windows build van GroqChat Lite.'
-          releaseDraft: false
-          prerelease: false
