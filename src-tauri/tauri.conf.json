@@ -14,12 +14,6 @@
     "bundle": {
       "active": true,
       "identifier": "com.mikakrul.groqchat",
-      "category": "DeveloperTool",
-      "copyright": "",
-      "deb": {
-        "depends": []
-      },
-      "externalBin": [],
       "icon": [
         "icon/32x32.png",
         "icon/32x32@2x.png",
@@ -31,22 +25,7 @@
         "icon/256x256.png",
         "icon/512x512.png"
       ],
-      "longDescription": "",
-      "macOS": {
-        "frameworks": [],
-        "minimumSystemVersion": ""
-      },
-      "resources": [],
-      "shortDescription": "",
-      "targets": "all",
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": ""
-      }
-    },
-    "security": {
-      "csp": null
+      "targets": "all"
     },
     "windows": [
       {
