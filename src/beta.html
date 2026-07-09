@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start Center - Premium AI Interface</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Marked.js voor Markdown-rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #0f1026 0%, #1b1229 50%, #110d1a 100%);
+      color: #ffffff;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* Het glazen, gitzwarte hoofdvenster */
+    .glass-panel {
+      background-color: #09090b;
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6), inset 1px 1px 0px rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    /* Grid Button Styles - Specifieke kleuren en glows */
+    .tool-btn {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+    .tool-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.15);
+    }
+
+    /* Kleuren voor de specifieke kaarten uit de screenshot */
+    .card-blue { border: 1px solid rgba(59, 130, 246, 0.3); background-color: rgba(59, 130, 246, 0.05); color: #60a5fa; }
+    .card-red { border: 1px solid rgba(225, 29, 72, 0.3); background-color: rgba(225, 29, 72, 0.05); color: #fb7185; }
+    .card-green { border: 1px solid rgba(16, 185, 129, 0.3); background-color: rgba(16, 185, 129, 0.05); color: #34d399; }
+    .card-yellow { border: 1px solid rgba(245, 158, 11, 0.3); background-color: rgba(245, 158, 11, 0.05); color: #fbbf24; }
+    .card-purple { border: 1px solid rgba(168, 85, 247, 0.3); background-color: rgba(168, 85, 247, 0.05); color: #c084fc; }
+    .card-indigo { border: 1px solid rgba(99, 102, 241, 0.3); background-color: rgba(99, 102, 241, 0.05); color: #818cf8; }
+    .card-gray { border: 1px solid rgba(156, 163, 175, 0.2); background-color: rgba(255, 255, 255, 0.03); color: #d1d5db; }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }
+    
+    /* Zachte animaties */
+    .fade-in { animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Typ-indicator */
+    .typing-indicator span {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background-color: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      margin-right: 3px;
+      animation: bounce 1.4s infinite both;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: .2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: .4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    /* Streaming Cursor effect */
+    .streaming-cursor p:last-child::after {
+      content: '▊';
+      display: inline-block;
+      margin-left: 3px;
+      color: #3b82f6;
+      animation: blink 0.8s steps(2, start) infinite;
+    }
+    @keyframes blink { to { visibility: hidden; } }
+
+    /* Markdown Code blocks */
+    pre {
+      background-color: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+      overflow-x: auto;
+    }
+    code {
+      font-family: monospace;
+      color: #f43f5e;
+    }
+    pre code {
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex p-2 gap-2 overflow-hidden">
+
+  <!-- ZIJBALK (Links, transparant over de body gradient) -->
+  <aside class="w-[220px] flex flex-col justify-between py-6 px-4 shrink-0" id="sidebar">
+    <div class="flex flex-col gap-6 h-[80vh]">
+      <!-- Logo / Titel (Zonder app logo-icoon) -->
+      <h1 class="text-xl font-bold tracking-wide pl-2 flex items-center">
+        Start Center
+      </h1>
+
+      <!-- Hoofdnavigatie -->
+      <nav class="flex flex-col gap-1">
+        <button onclick="showHome()" class="flex items-center gap-3 px-4 py-2.5 rounded-full bg-white/10 text-white text-sm font-medium transition-all w-full text-left">
+          <i data-lucide="home" class="w-4 h-4"></i>
+          Home
+        </button>
+        <button onclick="newChat()" class="flex items-center justify-between px-4 py-2.5 rounded-full hover:bg-white/5 text-gray-400 hover:text-white text-sm font-medium transition-all text-left">
+          <div class="flex items-center gap-3">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Nieuwe chat
+          </div>
+        </button>
+      </nav>
+
+      <!-- Dynamische Chats Lijsten (Pinned & Recent) -->
+      <div class="flex-grow overflow-y-auto pr-1 flex flex-col gap-4" id="sidebar-content">
+        <!-- Gepinde Chats -->
+        <div id="pinned-section" class="flex flex-col gap-1 hidden">
+          <p class="text-[10px] uppercase tracking-wider text-gray-500 font-bold px-2 mb-1">Gepind</p>
+          <ul class="flex flex-col gap-0.5" id="pinned-list"></ul>
+        </div>
+        
+        <!-- Recente Chats -->
+        <div class="flex flex-col gap-1">
+          <p class="text-[10px] uppercase tracking-wider text-gray-500 font-bold px-2 mb-1">Recent</p>
+          <ul class="flex flex-col gap-0.5" id="recent-list"></ul>
+          <p class="text-xs text-gray-500 px-2 italic" id="empty-recent">Geen eerdere chats.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secundaire Navigatie (Onderaan) -->
+    <div class="flex flex-col gap-1">
+      <button onclick="openSettings()" class="flex items-center gap-3 px-4 py-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white text-sm font-medium transition-all w-full text-left">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+        Instellingen
+      </button>
+    </div>
+  </aside>
+
+  <!-- HOOFDVENSTER (Rechts, afgerond en gitzwart) -->
+  <main class="glass-panel flex-grow h-full rounded-[32px] border border-white/5 flex flex-col overflow-hidden relative">
+    
+    <!-- TOP BAR (Back/Forward en App-naam verwijderd) -->
+    <header class="flex justify-between items-center px-8 py-5 shrink-0 z-10">
+      <div class="flex items-center gap-4">
+        <button class="p-1.5 rounded-md hover:bg-white/10 text-gray-400 md:hidden" onclick="toggleSidebarMobile()">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <span class="text-sm font-medium text-gray-200" id="active-title">Mijn Overzicht</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="newChat()" class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 hover:bg-white/5 text-sm font-medium text-gray-300 transition-colors">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          Nieuw
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTAINER VOOR DYNAMISCHE CONTENT (Startscherm OF Chat) -->
+    <div class="flex-grow overflow-hidden px-8 pb-8 flex flex-col relative">
+      
+      <!-- === VIEW 1: HET STARTSCHERM (Grid Layout) === -->
+      <div id="start-view" class="flex flex-col w-full max-w-5xl mx-auto pt-8 fade-in overflow-y-auto h-full pr-2">
+        <h2 class="text-4xl font-semibold mb-12">Hallo!</h2>
+
+        <div class="mb-6 flex justify-between items-end">
+          <h3 class="text-lg text-gray-300 font-medium">Aan de slag</h3>
+        </div>
+
+        <!-- 4-Koloms Grid voor de acties -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+          
+          <!-- Writer (Blauw) -->
+          <button onclick="startTool('Writer')" class="tool-btn card-blue rounded-[20px] p-4 flex justify-between items-center group cursor-pointer">
+            <div class="flex items-center gap-3">
+              <i data-lucide="edit-3" class="w-5 h-5"></i>
+              <span class="font-medium text-[15px]">Writer</span>
+            </div>
+            <span class="text-xl font-light opacity-60 group-hover:opacity-100 transition-opacity">+</span>
+          </button>
+
+          <!-- Impress (Rood) -->
+          <button onclick="startTool('Impress')" class="tool-btn card-red rounded-[20px] p-4 flex justify-between items-center group cursor-pointer">
+            <div class="flex items-center gap-3">
+              <i data-lucide="presentation" class="w-5 h-5"></i>
+              <span class="font-medium text-[15px]">Impress</span>
+            </div>
+            <span class="text-xl font-light opacity-60 group-hover:opacity-100 transition-opacity">+</span>
+          </button>
+
+          <!-- Calc (Groen) -->
+          <button onclick="startTool('Calc')" class="tool-btn card-green rounded-[20px] p-4 flex justify-between items-center group cursor-pointer">
+            <div class="flex items-center gap-3">
+              <i data-lucide="calculator" class="w-5 h-5"></i>
+              <span class="font-medium text-[15px]">Calc</span>
+            </div>
+            <span class="text-xl font-light opacity-60 group-hover:opacity-100 transition-opacity">+</span>
+          </button>
+
+          <!-- Draw (Geel) -->
+          <button onclick="startTool('Draw')" class="tool-btn card-yellow rounded-[20px] p-4 flex justify-between items-center group cursor-pointer">
+            <div class="flex items-center gap-3">
+              <i data-lucide="pen-tool" class="w-5 h-5"></i>
+              <span class="font-medium text-[15px]">Draw</span>
+            </div>
+            <span class="text-xl font-light opacity-60 group-hover:opacity-100 transition-opacity">+</span>
+          </button>
+
+          <!-- Math (Paars) -->
+          <button onclick="startTool('Math')" class="tool-btn card-purple rounded-[20px] p-4 flex justify-between items-center group cursor-pointer">
+            <div class="flex items-center gap-3">
+              <i data-lucide="sigma" class="w-5 h-5"></i>
+              <span class="font-medium text-[15px]">Math</span>
+            </div>
+            <span class="text-xl font-light opacity-60 group-hover:opacity-100 transition-opacity">+</span>
+          </button>
+
+          <!-- Base (Indigo) -->
+          <button onclick="startTool('Base')" class="tool-btn card-indigo rounded-[20px] p-4 flex justify-between items-center group cursor-pointer">
+            <div class="flex items-center gap-3">
+              <i data-lucide="database" class="w-5 h-5"></i>
+              <span class="font-medium text-[15px]">Base</span>
+            </div>
+            <span class="text-xl font-light opacity-60 group-hover:opacity-100 transition-opacity">+</span>
+          </button>
+
+          <!-- Template (Grijs, span 2 columns) -->
+          <button onclick="startTool('Template')" class="tool-btn card-gray rounded-[20px] p-4 col-span-1 md:col-span-2 flex justify-between items-center group cursor-pointer">
+            <div class="flex items-center gap-3">
+              <i data-lucide="layers" class="w-5 h-5"></i>
+              <span class="font-medium text-[15px]">Begin met een sjabloon</span>
+            </div>
+            <span class="text-xl font-light opacity-60 group-hover:opacity-100 transition-opacity">+</span>
+          </button>
+
+        </div>
+
+        <h3 class="text-lg text-gray-300 font-medium mb-4">Extra Bronnen</h3>
+        
+        <!-- Resources Rij -->
+        <div class="flex flex-wrap gap-3">
+          <button class="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/5 bg-white/[0.03] hover:bg-white/10 text-sm text-gray-300 transition-all">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            Uitgelicht
+          </button>
+          <button class="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/5 bg-white/[0.03] hover:bg-white/10 text-sm text-gray-300 transition-all">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            Leren
+          </button>
+          <button class="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/5 bg-white/[0.03] hover:bg-white/10 text-sm text-gray-300 transition-all">
+            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+            Winkel
+          </button>
+        </div>
+      </div>
+
+      <!-- === VIEW 2: ACTIEVE CHAT INTERFACE === -->
+      <div id="chat-view" class="hidden flex-col w-full max-w-4xl mx-auto h-full fade-in relative overflow-hidden">
+        <!-- Scroll-container voor berichten -->
+        <div class="flex-grow overflow-y-auto flex flex-col gap-6 pt-4 pb-28 pr-2" id="chat-scroll">
+          <div id="chat-empty" class="flex flex-col items-center justify-center text-center h-full gap-2">
+            <p class="text-gray-400">Begin een gesprek met de geselecteerde tool.</p>
+          </div>
+          <div id="chat-messages" class="flex flex-col gap-6 hidden"></div>
+          <div id="scroll-bottom"></div>
+        </div>
+
+        <!-- Zwevende "Scroll naar beneden" knop -->
+        <button type="button" class="absolute bottom-32 right-4 bg-white/10 hover:bg-white/25 border border-white/10 text-white rounded-full p-2.5 transition-all hidden z-20" id="scroll-to-bottom">
+          <i data-lucide="chevron-down" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Invoerveld sectie (Glanzende cockpit) -->
+        <div class="absolute bottom-0 left-0 right-0 pt-4 bg-gradient-to-t from-[#09090b] via-[#09090b]/90 to-transparent pb-4">
+          <div class="bg-white/[0.03] border border-white/10 rounded-[20px] p-2 flex flex-col focus-within:border-white/30 transition-all shadow-lg">
+            <textarea id="chat-input" rows="1" placeholder="Typ je opdracht..." 
+                      class="w-full bg-transparent border-none outline-none text-white placeholder-gray-500 p-3 resize-none max-h-32 text-sm"></textarea>
+            
+            <div class="flex justify-between items-center px-2 pb-1 pt-1 border-t border-white/5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span id="active-tool-badge" class="text-xs px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20">Writer AI</span>
+                
+                <!-- Verplaatste Upload Knop in de Chat box -->
+                <button type="button" onclick="triggerFileUpload()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-300 text-xs hover:bg-white/10 transition-colors" id="btn-upload-chat" title="Upload een bestand naar deze chat">
+                  <i data-lucide="upload" class="w-3.5 h-3.5 text-blue-400"></i>
+                  <span id="upload-btn-label">Uploaden</span>
+                </button>
+                <input type="file" id="chat-file-input" class="hidden" onchange="handleFileSelection(event)">
+
+                <!-- Model Kiezer inline -->
+                <div class="relative" id="model-select-wrapper">
+                  <button type="button" class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-300 text-xs hover:bg-white/10 transition-colors" id="model-select-btn">
+                    <i data-lucide="cpu" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span id="model-select-label">Selecteer Model</span>
+                    <i data-lucide="chevron-down" class="w-3 h-3 text-gray-500"></i>
+                  </button>
+                  <div class="absolute bottom-8 left-0 mb-2 w-64 bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl hidden z-50 overflow-hidden" id="model-dropdown"></div>
+                </div>
+              </div>
+              <button id="btn-send" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                <i data-lucide="arrow-up" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Settings Modal (Glass design) -->
+  <div class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50" id="settings-modal">
+    <button type="button" class="absolute inset-0 bg-black/80 backdrop-blur-sm" id="modal-backdrop"></button>
+    
+    <div class="relative w-full max-w-lg bg-zinc-950 border border-white/10 rounded-[28px] p-6 max-h-[85vh] overflow-y-auto flex flex-col shadow-2xl z-10 animate-fade-in mx-4">
+      <button type="button" class="absolute top-4 right-4 text-gray-400 hover:text-white p-2" id="modal-close">
+        <i data-lucide="x" class="w-[18px] h-[18px]"></i>
+      </button>
+      
+      <div class="mb-6">
+        <h2 class="text-xl font-bold">Instellingen</h2>
+        <p class="text-xs text-gray-400 mt-1">Stel je Groq API key in om streaming antwoorden te activeren. Alle gegevens worden lokaal opgeslagen.</p>
+      </div>
+
+      <div class="flex flex-col gap-5">
+        <!-- API Keys -->
+        <section class="flex flex-col gap-2">
+          <label class="text-xs font-semibold text-gray-300">Groq API Sleutel</label>
+          <div class="relative flex items-center bg-white/[0.03] border border-white/10 rounded-xl focus-within:border-blue-500/50">
+            <input type="password" id="key-groq" class="w-full bg-transparent border-none outline-none text-white px-4 py-3 text-sm placeholder-gray-600" placeholder="gsk_..." autocomplete="off">
+            <button type="button" class="btn-toggle-eye px-3 text-gray-400 hover:text-white" data-target="key-groq">
+              <i data-lucide="eye" class="icon-eye w-5 h-5"></i>
+              <i data-lucide="eye-off" class="icon-eye-off w-5 h-5 hidden"></i>
+            </button>
+          </div>
+        </section>
+
+        <!-- Models -->
+        <section class="flex flex-col gap-2">
+          <label class="text-xs font-semibold text-gray-300">Gepinde Modellen</label>
+          <div class="flex gap-2">
+            <select id="model-fetched-select" class="flex-grow bg-white/[0.03] border border-white/10 rounded-xl text-white px-3 py-2 text-sm outline-none" disabled>
+              <option value="">Voer eerst je Groq API Key in...</option>
+            </select>
+            <button type="button" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed" id="btn-add-model" disabled>Pinnen</button>
+          </div>
+          <ul class="flex flex-col gap-1.5 mt-2" id="model-list"></ul>
+          <p class="text-xs text-gray-500" id="model-empty">Selecteer hierboven modellen om ze snel beschikbaar te maken in de chat cockpit.</p>
+        </section>
+
+        <!-- System Prompt -->
+        <section class="flex flex-col gap-2">
+          <label class="text-xs font-semibold text-gray-300">Systeem Rol / Prompt</label>
+          <textarea id="system-prompt" class="bg-white/[0.03] border border-white/10 rounded-xl text-white p-3 text-xs outline-none focus:border-blue-500/50" rows="3" placeholder="Je bent een behulpzame assistent. Beantwoord dit: ${input}"></textarea>
+          <p class="text-[10px] text-gray-500">Gebruik <code class="text-blue-400 bg-white/5 px-1 py-0.5 rounded">${input}</code> als placeholder voor het bericht. Als dit ontbreekt, wordt de vraag automatisch toegevoegd.</p>
+        </section>
+      </div>
+
+      <div class="mt-8 pt-4 border-t border-white/5 flex justify-end">
+        <button type="button" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-1.5" id="btn-save-settings">
+          <span id="save-text">Opslaan</span>
+          <span id="save-check" class="hidden flex items-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i> Opgeslagen
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Constants & Storage Keys =====
+    const KEYS_KEY = 'mini-ai-chat-api-keys';
+    const PROMPT_KEY = 'mini-ai-chat-system-prompt';
+    const MODELS_KEY = 'mini-ai-chat-custom-models';
+    const DEFAULT_PROMPT = 'You are a helpful assistant. Answer this: ${input}';
+    const BUILTIN_MODELS = ['llama3-8b-8192', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it'];
+    const EMPTY_KEYS = { groq: '' };
+
+    // Tool Configs (System prompts voor specifieke start-center tools)
+    const TOOL_PROMPTS = {
+      'Writer': 'You are Writer, an elite creative writing companion and document designer. Generate polished prose, structured copy, or formal documents. Formats should be professional.',
+      'Impress': 'You are Impress, an expert slide-deck and presentation assistant. Your job is to draft presentation outlines, slide copy, and layout recommendations. Present findings clearly.',
+      'Calc': 'You are Calc, an advanced data and calculation specialist. Help the user construct spreadsheets, formulas, or perform sophisticated quantitative and analytical tasks.',
+      'Draw': 'You are Draw, a diagramming and vector asset helper. Generate SVG markup code directly when requested, or provide blueprints and aesthetic advice.',
+      'Math': 'You are Math, a strict quantitative solver. Format complex formulas beautifully. Think step-by-step through engineering, calculations, and mathematical proofs.',
+      'Base': 'You are Base, a database architect. Write SQL queries, design relational tables, and assist with structured backend database workflows.',
+      'Template': 'You are Template Assistant. Provide tailored layout guides, document structures, and blueprints.'
+    };
+
+    // ===== Application State =====
+    let conversations = [];
+    let activeId = '';
+    let apiKeys = { ...EMPTY_KEYS };
+    let systemPrompt = DEFAULT_PROMPT;
+    let customModels = [...BUILTIN_MODELS];
+    let currentModel = BUILTIN_MODELS[0];
+    let msgId = 0;
+    let settingsOpen = false;
+    let atBottom = true;
+    let isGenerating = false;
+    let selectedTool = '';
+
+    // ===== Cache DOM references =====
+    const els = {};
+    function cacheEls() {
+      els.startView = document.getElementById('start-view');
+      els.chatView = document.getElementById('chat-view');
+      els.sidebarContent = document.getElementById('sidebar-content');
+      els.pinnedSection = document.getElementById('pinned-section');
+      els.pinnedList = document.getElementById('pinned-list');
+      els.recentList = document.getElementById('recent-list');
+      els.emptyRecent = document.getElementById('empty-recent');
+      els.activeTitle = document.getElementById('active-title');
+      els.chatScroll = document.getElementById('chat-scroll');
+      els.chatEmpty = document.getElementById('chat-empty');
+      els.chatMessages = document.getElementById('chat-messages');
+      els.btnScrollBottom = document.getElementById('scroll-to-bottom');
+      els.chatInput = document.getElementById('chat-input');
+      els.btnSend = document.getElementById('btn-send');
+      els.activeToolBadge = document.getElementById('active-tool-badge');
+      // Model Select
+      els.modelSelectWrapper = document.getElementById('model-select-wrapper');
+      els.modelSelectBtn = document.getElementById('model-select-btn');
+      els.modelSelectLabel = document.getElementById('model-select-label');
+      els.modelDropdown = document.getElementById('model-dropdown');
+      // Settings modal
+      els.settingsModal = document.getElementById('settings-modal');
+      els.modalBackdrop = document.getElementById('modal-backdrop');
+      els.modalClose = document.getElementById('modal-close');
+      els.keyGroq = document.getElementById('key-groq');
+      els.modelFetchedSelect = document.getElementById('model-fetched-select');
+      els.btnAddModel = document.getElementById('btn-add-model');
+      els.modelList = document.getElementById('model-list');
+      els.modelEmpty = document.getElementById('model-empty');
+      els.systemPrompt = document.getElementById('system-prompt');
+      els.btnSaveSettings = document.getElementById('btn-save-settings');
+      els.saveText = document.getElementById('save-text');
+      els.saveCheck = document.getElementById('save-check');
+    }
+
+    // ===== Icon Refresh Helper =====
+    function refreshIcons() {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    // ===== Utilities =====
+    function createId() {
+      return crypto.randomUUID ? crypto.randomUUID() :
+        'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+          const r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+    }
+
+    function createConversation(title = 'Nieuwe chat', tool = '') {
+      return { 
+        id: createId(), 
+        title: title, 
+        messages: [], 
+        pinned: false,
+        tool: tool 
+      };
+    }
+
+    async function fetchModelsFromGroq(apiKey) {
+      const response = await fetch('https://api.groq.com/openai/v1/models', {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+      });
+      if (!response.ok) throw new Error('API request failed');
+      const data = await response.json();
+      return data.data ? data.data.map(m => m.id) : [];
+    }
+
+    async function checkAndFetchModels() {
+      const key = els.keyGroq.value.trim();
+      if (!key) {
+        els.modelFetchedSelect.disabled = true;
+        els.modelFetchedSelect.innerHTML = '<option value="">Voer eerst Groq API Key in...</option>';
+        els.btnAddModel.disabled = true;
+        return;
+      }
+
+      els.modelFetchedSelect.innerHTML = '<option value="">Laden van beschikbare modellen...</option>';
+      els.modelFetchedSelect.disabled = true;
+      els.btnAddModel.disabled = true;
+
+      try {
+        const models = await fetchModelsFromGroq(key);
+        if (models.length === 0) {
+          els.modelFetchedSelect.innerHTML = '<option value="">Geen modellen gevonden</option>';
+          return;
+        }
+        els.modelFetchedSelect.innerHTML = models.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+        els.modelFetchedSelect.disabled = false;
+        els.btnAddModel.disabled = false;
+      } catch (err) {
+        els.modelFetchedSelect.innerHTML = `<option value="">Fout bij laden van modellen</option>`;
+      }
+    }
+
+    async function generateChatTitle(userPrompt) {
+      try {
+        const apiKey = apiKeys.groq;
+        if (!apiKey) return;
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: currentModel,
+            messages: [
+              { role: 'system', content: 'Generate a short, concise chat title (2-4 words maximum, no quotes, no punctuation) based on the user prompt. Do not prefix with "Title:".' },
+              { role: 'user', content: userPrompt }
+            ],
+            max_tokens: 10
+          })
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const title = data?.choices?.[0]?.message?.content?.trim().replace(/^["']|["']$/g, '');
+          if (title) {
+            const active = conversations.find(c => c.id === activeId);
+            if (active) {
+              active.title = title;
+              renderSidebar();
+              els.activeTitle.textContent = title;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Failed to generate title", e);
+      }
+    }
+
+    async function fetchCompletionStream(messages, modelName, onChunk) {
+      const apiKey = apiKeys.groq;
+      if (!apiKey) {
+        throw new Error(`Configureer eerst een Groq API Key via de Instellingen.`);
+      }
+
+      const active = conversations.find(c => c.id === activeId);
+      let activeSysPrompt = systemPrompt.trim();
+      
+      if (active && active.tool && TOOL_PROMPTS[active.tool]) {
+        activeSysPrompt = TOOL_PROMPTS[active.tool];
+      }
+
+      const apiMessages = [];
+      const lastUser = [...messages].reverse().find(m => m.role === 'user');
+      
+      if (activeSysPrompt) {
+        if (activeSysPrompt.includes('${input}') && lastUser) {
+          activeSysPrompt = activeSysPrompt.replaceAll('${input}', lastUser.content);
+        }
+        apiMessages.push({ role: 'system', content: activeSysPrompt });
+      }
+
+      messages.forEach(m => {
+        if (!m.error) {
+          apiMessages.push({ role: m.role, content: m.content });
+        }
+      });
+
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: apiMessages,
+          stream: true
+        })
+      });
+
+      if (!response.ok) {
+        let errorText = '';
+        try {
+          const errorJson = await response.json();
+          errorText = errorJson?.error?.message || response.statusText;
+        } catch {
+          errorText = `HTTP Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorText);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+        for (const line of lines) {
+          const cleanLine = line.trim();
+          if (!cleanLine || cleanLine === 'data: [DONE]') continue;
+          if (cleanLine.startsWith('data: ')) {
+            try {
+              const json = JSON.parse(cleanLine.substring(6));
+              const text = json.choices?.[0]?.delta?.content || '';
+              if (text) onChunk(text);
+            } catch (e) {}
+          }
+        }
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
+
+    // ===== Storage =====
+    function loadStorage() {
+      try {
+        const storedKeys = localStorage.getItem(KEYS_KEY);
+        if (storedKeys) apiKeys = { ...EMPTY_KEYS, ...JSON.parse(storedKeys) };
+        const storedModels = localStorage.getItem(MODELS_KEY);
+        if (storedModels) customModels = JSON.parse(storedModels);
+      } catch {}
+      systemPrompt = localStorage.getItem(PROMPT_KEY) || DEFAULT_PROMPT;
+    }
+
+    function saveStorage() {
+      localStorage.setItem(KEYS_KEY, JSON.stringify(apiKeys));
+      localStorage.setItem(PROMPT_KEY, systemPrompt);
+      localStorage.setItem(MODELS_KEY, JSON.stringify(customModels));
+    }
+
+    // ===== Rendering components =====
+    function renderSidebar() {
+      const pinned = conversations.filter(c => c.pinned);
+      const recent = conversations.filter(c => !c.pinned);
+
+      // Pinned
+      if (pinned.length === 0) {
+        els.pinnedSection.classList.add('hidden');
+      } else {
+        els.pinnedSection.classList.remove('hidden');
+        els.pinnedList.innerHTML = pinned.map(c => renderChatRow(c)).join('');
+      }
+
+      // Recent
+      if (recent.length === 0) {
+        els.recentList.classList.add('hidden');
+        els.emptyRecent.classList.remove('hidden');
+      } else {
+        els.recentList.classList.remove('hidden');
+        els.emptyRecent.classList.add('hidden');
+        els.recentList.innerHTML = recent.map(c => renderChatRow(c)).join('');
+      }
+      refreshIcons();
+    }
+
+    function renderChatRow(chat) {
+      const isActive = chat.id === activeId;
+      const pinIcon = chat.pinned
+        ? '<i data-lucide="pin" class="w-3.5 h-3.5 text-blue-400"></i>'
+        : '<i data-lucide="pin" class="w-3.5 h-3.5 opacity-40 hover:opacity-100"></i>';
+
+      return `
+        <li class="chat-row flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all group ${isActive ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}" data-id="${chat.id}">
+          <button type="button" class="flex items-center gap-3 flex-grow text-left overflow-hidden min-w-0 mr-1" onclick="selectChat('${chat.id}')">
+            <i data-lucide="message-square" class="w-4 h-4 shrink-0"></i>
+            <span class="truncate chat-row-title text-xs flex-grow min-w-0">${escapeHtml(chat.title)}</span>
+          </button>
+          <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0 max-w-0 group-hover:max-w-[100px] overflow-hidden">
+            <button type="button" class="p-1 hover:text-white" onclick="startRename('${chat.id}')" title="Rename">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+            </button>
+            <button type="button" class="p-1 hover:text-white" onclick="togglePin('${chat.id}')" title="Pin">
+              ${pinIcon}
+            </button>
+            <button type="button" class="p-1 hover:text-red-400" onclick="deleteChat('${chat.id}')" title="Delete">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </li>
+      `;
+    }
+
+    function renderMessages() {
+      const active = conversations.find(c => c.id === activeId) || conversations[0];
+      if (!active) return;
+
+      els.activeTitle.textContent = active.title;
+
+      if (active.messages.length === 0 && !isGenerating) {
+        els.chatEmpty.classList.remove('hidden');
+        els.chatMessages.classList.add('hidden');
+        els.btnScrollBottom.classList.add('hidden');
+        return;
+      }
+
+      els.chatEmpty.classList.add('hidden');
+      els.chatMessages.classList.remove('hidden');
+
+      const lastAssistantId = [...active.messages].reverse().find(m => m.role === 'assistant')?.id;
+      const lastMsg = active.messages[active.messages.length - 1];
+
+      let messagesHtml = active.messages.map(m => {
+        const isUser = m.role === 'user';
+        const isLastAssistant = m.id === lastAssistantId;
+        const isError = m.error;
+        const isStreaming = isGenerating && isLastAssistant;
+        
+        const alignmentClass = isUser ? 'items-end' : 'items-start';
+        const bubbleStyleClass = isUser 
+          ? 'bg-blue-600/20 border border-blue-500/20 rounded-2xl rounded-tr-sm text-gray-100' 
+          : (isError ? 'bg-red-500/10 border border-red-500/20 rounded-2xl rounded-tl-sm text-red-200' : 'bg-white/[0.03] border border-white/5 rounded-2xl rounded-tl-sm text-gray-200');
+        const customCursorClass = isStreaming ? 'streaming-cursor' : '';
+
+        const contentHtml = isUser
+          ? `<p>${escapeHtml(m.content)}</p>`
+          : renderMarkdown(m.content);
+
+        const actions = (isUser || isError || isStreaming) ? '' : renderMessageActions(m, isLastAssistant);
+
+        return `
+          <div class="flex flex-col ${alignmentClass} w-full fade-in gap-1.5">
+            <div class="max-w-[85%] px-4 py-3 text-sm leading-relaxed ${bubbleStyleClass} ${customCursorClass}">
+              ${contentHtml}
+            </div>
+            ${actions}
+          </div>
+        `;
+      }).join('');
+
+      if (isGenerating && (!lastMsg || lastMsg.role !== 'assistant' || !lastMsg.content)) {
+        messagesHtml += `
+          <div class="flex flex-col items-start w-full fade-in">
+            <div class="bg-white/[0.03] border border-white/5 rounded-2xl rounded-tl-sm px-4 py-3">
+              <div class="typing-indicator flex items-center justify-center">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      els.chatMessages.innerHTML = messagesHtml + '<div id="scroll-bottom"></div>';
+      refreshIcons();
+    }
+
+    function renderMarkdown(content) {
+      if (typeof marked !== 'undefined') {
+        try {
+          return marked.parse(content, { breaks: true });
+        } catch {
+          return escapeHtml(content).replace(/\n/g, '<br>');
+        }
+      }
+      return escapeHtml(content).replace(/\n/g, '<br>');
+    }
+
+    function renderMessageActions(msg, canRegenerate) {
+      return `
+        <div class="flex items-center gap-2 px-1 text-gray-500">
+          <button type="button" class="hover:text-white p-1 rounded transition-colors" onclick="copyMessage(${msg.id})" title="Kopieer">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          </button>
+          ${canRegenerate ? `
+            <button type="button" class="hover:text-white p-1 rounded transition-colors" onclick="regenerate()" title="Opnieuw">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            </button>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function renderModelSelect() {
+      if (customModels.length === 0) {
+        els.modelSelectLabel.textContent = 'Configureer model in Instellingen';
+        currentModel = '';
+        els.modelDropdown.innerHTML = '<div class="p-3 text-xs text-gray-500">Geen gepinde modellen</div>';
+      } else {
+        if (!customModels.includes(currentModel)) {
+          currentModel = customModels[0];
+        }
+        els.modelSelectLabel.textContent = currentModel;
+        els.modelDropdown.innerHTML = customModels.map(m => {
+          const activeClass = m === currentModel ? 'bg-blue-600/20 text-blue-400' : 'text-gray-300 hover:bg-white/5';
+          return `<button type="button" class="model-dropdown-item w-full text-left px-4 py-2.5 text-xs font-semibold transition-all border-b border-white/5 last:border-0 ${activeClass}" data-model="${escapeHtml(m)}">${escapeHtml(m)}</button>`;
+        }).join('');
+      }
+      refreshIcons();
+    }
+
+    function toggleModelDropdown() {
+      const isOpen = !els.modelDropdown.classList.contains('hidden');
+      if (isOpen) {
+        closeModelDropdown();
+      } else {
+        renderModelSelect();
+        els.modelDropdown.classList.remove('hidden');
+        els.modelSelectWrapper.classList.add('open');
+      }
+    }
+
+    function closeModelDropdown() {
+      els.modelDropdown.classList.add('hidden');
+      els.modelSelectWrapper.classList.remove('open');
+    }
+
+    function selectModel(modelName) {
+      currentModel = modelName;
+      els.modelSelectLabel.textContent = modelName;
+      closeModelDropdown();
+      renderModelSelect();
+    }
+
+    function renderSettingsModels() {
+      if (customModels.length === 0) {
+        els.modelList.classList.add('hidden');
+        els.modelEmpty.classList.remove('hidden');
+      } else {
+        els.modelList.classList.remove('hidden');
+        els.modelEmpty.classList.add('hidden');
+        els.modelList.innerHTML = customModels.map(name => `
+          <li class="flex items-center justify-between px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl text-xs text-gray-300">
+            <span>${escapeHtml(name)}</span>
+            <button type="button" class="p-1 hover:text-red-400" onclick="removeModel('${escapeHtml(name)}')">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </li>
+        `).join('');
+      }
+      refreshIcons();
+    }
+
+    // ===== Scroll handlers =====
+    function scrollToBottom(behavior = 'smooth') {
+      const bottom = els.chatScroll.querySelector('#scroll-bottom');
+      if (bottom) bottom.scrollIntoView({ behavior });
+    }
+
+    function handleScroll() {
+      const el = els.chatScroll;
+      const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+      atBottom = distance < 80;
+      if (atBottom || conversations.find(c => c.id === activeId)?.messages.length === 0) {
+        els.btnScrollBottom.classList.add('hidden');
+      } else {
+        els.btnScrollBottom.classList.remove('hidden');
+      }
+    }
+
+    // ===== Views / Navigation & Layout togglers =====
+    function showHome() {
+      document.getElementById('start-view').classList.remove('hidden');
+      document.getElementById('chat-view').classList.add('hidden');
+      document.getElementById('active-title').textContent = "Mijn Overzicht";
+      selectedTool = '';
+      refreshIcons();
+    }
+
+    function startTool(toolName) {
+      selectedTool = toolName;
+      
+      els.activeToolBadge.textContent = `${toolName} Engine`;
+      els.activeToolBadge.className = "text-xs px-2.5 py-1 rounded-md border ";
+      if (toolName === 'Writer') els.activeToolBadge.classList.add('bg-blue-500/10', 'text-blue-400', 'border-blue-500/20');
+      else if (toolName === 'Impress') els.activeToolBadge.classList.add('bg-rose-500/10', 'text-rose-400', 'border-rose-500/20');
+      else if (toolName === 'Calc') els.activeToolBadge.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
+      else if (toolName === 'Draw') els.activeToolBadge.classList.add('bg-amber-500/10', 'text-amber-400', 'border-amber-500/20');
+      else if (toolName === 'Math') els.activeToolBadge.classList.add('bg-purple-500/10', 'text-purple-400', 'border-purple-500/20');
+      else if (toolName === 'Base') els.activeToolBadge.classList.add('bg-indigo-500/10', 'text-indigo-400', 'border-indigo-500/20');
+      else els.activeToolBadge.classList.add('bg-gray-500/10', 'text-gray-400', 'border-gray-500/20');
+
+      const conv = createConversation(`${toolName} Workspace`, toolName);
+      conversations.unshift(conv);
+      activeId = conv.id;
+
+      document.getElementById('start-view').classList.add('hidden');
+      document.getElementById('chat-view').classList.remove('hidden');
+      document.getElementById('chat-view').classList.add('flex');
+
+      renderSidebar();
+      renderMessages();
+      atBottom = true;
+      els.btnScrollBottom.classList.add('hidden');
+      setTimeout(() => scrollToBottom('auto'), 0);
+      refreshIcons();
+    }
+
+    function toggleSidebarMobile() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('hidden');
+    }
+
+    // ===== Action logic =====
+    function selectChat(id) {
+      activeId = id;
+      const chat = conversations.find(c => c.id === id);
+      
+      if (chat && chat.tool) {
+        startTool(chat.tool);
+        conversations.shift(); 
+        activeId = id;
+      } else {
+        selectedTool = '';
+        els.activeToolBadge.textContent = 'Algemene Chat';
+        els.activeToolBadge.className = "text-xs px-2.5 py-1 rounded-md border bg-gray-500/10 text-gray-400 border-gray-500/20";
+        document.getElementById('start-view').classList.add('hidden');
+        document.getElementById('chat-view').classList.remove('hidden');
+        document.getElementById('chat-view').classList.add('flex');
+      }
+
+      renderSidebar();
+      renderMessages();
+      atBottom = true;
+      els.btnScrollBottom.classList.add('hidden');
+      setTimeout(() => scrollToBottom('auto'), 0);
+      refreshIcons();
+    }
+
+    function newChat() {
+      const conv = createConversation();
+      conversations.unshift(conv);
+      activeId = conv.id;
+      selectedTool = '';
+      els.activeToolBadge.textContent = 'Algemene Chat';
+      els.activeToolBadge.className = "text-xs px-2.5 py-1 rounded-md border bg-gray-500/10 text-gray-400 border-gray-500/20";
+
+      document.getElementById('start-view').classList.add('hidden');
+      document.getElementById('chat-view').classList.remove('hidden');
+      document.getElementById('chat-view').classList.add('flex');
+
+      renderSidebar();
+      renderMessages();
+      atBottom = true;
+      els.btnScrollBottom.classList.add('hidden');
+      setTimeout(() => scrollToBottom('auto'), 0);
+      refreshIcons();
+    }
+
+    function deleteChat(id) {
+      const idx = conversations.findIndex(c => c.id === id);
+      if (idx === -1) return;
+      conversations.splice(idx, 1);
+
+      if (conversations.length === 0) {
+        const conv = createConversation();
+        conversations.push(conv);
+        activeId = conv.id;
+      } else if (id === activeId) {
+        activeId = conversations[0].id;
+      }
+      renderSidebar();
+      renderMessages();
+      showHome();
+    }
+
+    function togglePin(id) {
+      const chat = conversations.find(c => c.id === id);
+      if (chat) chat.pinned = !chat.pinned;
+      
+      conversations.sort((a, b) => {
+        if (a.pinned === b.pinned) return 0;
+        return a.pinned ? -1 : 1;
+      });
+      renderSidebar();
+    }
+
+    function startRename(id) {
+      const chat = conversations.find(c => c.id === id);
+      if (!chat) return;
+
+      const row = document.querySelector(`.chat-row[data-id="${id}"]`);
+      if (!row) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'w-full px-2 py-1 bg-white/5 rounded-xl border border-white/10 flex items-center';
+      wrapper.innerHTML = `<input type="text" class="bg-transparent border-none outline-none text-white text-xs w-full" value="${escapeHtml(chat.title)}" />`;
+
+      const input = wrapper.querySelector('input');
+      input.addEventListener('blur', () => commitRename(id, input.value));
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          commitRename(id, input.value);
+        } else if (e.key === 'Escape') {
+          renderSidebar();
+        }
+      });
+
+      row.replaceWith(wrapper);
+      input.focus();
+      input.select();
+    }
+
+    function commitRename(id, title) {
+      const trimmed = title.trim();
+      const chat = conversations.find(c => c.id === id);
+      if (trimmed && chat && trimmed !== chat.title) {
+        chat.title = trimmed;
+      }
+      renderSidebar();
+      if (id === activeId) els.activeTitle.textContent = chat?.title || 'Nieuwe chat';
+    }
+
+    // Functionaliteit om bestanden te uploaden via de nieuwe knop in de chat box
+    function triggerFileUpload() {
+      document.getElementById('chat-file-input').click();
+    }
+
+    function handleFileSelection(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const label = document.getElementById('upload-btn-label');
+      label.textContent = file.name.substring(0, 10) + (file.name.length > 10 ? '...' : '');
+
+      const input = document.getElementById('chat-input');
+      input.value += ` [Geüpload bestand: ${file.name}] `;
+      input.dispatchEvent(new Event('input'));
+    }
+
+    async function sendMessage() {
+      const text = els.chatInput.value.trim();
+      if (!text || isGenerating || !currentModel) return;
+
+      const userMsg = { id: msgId++, role: 'user', content: text };
+      const active = conversations.find(c => c.id === activeId);
+      const isFirstMessage = active && active.messages.length === 0;
+      if (active) {
+        active.messages.push(userMsg);
+      }
+
+      els.chatInput.value = '';
+      els.chatInput.style.height = 'auto';
+      els.btnSend.disabled = true;
+      isGenerating = true;
+
+      // Reset upload label na versturen
+      document.getElementById('upload-btn-label').textContent = "Uploaden";
+      document.getElementById('chat-file-input').value = "";
+
+      renderSidebar();
+      renderMessages();
+      atBottom = true;
+      setTimeout(() => scrollToBottom(), 0);
+
+      const replyMsg = { id: msgId++, role: 'assistant', content: '' };
+      if (active) {
+        active.messages.push(replyMsg);
+      }
+
+      try {
+        await fetchCompletionStream(
+          active ? active.messages.slice(0, -1) : [userMsg],
+          currentModel,
+          (chunk) => {
+            replyMsg.content += chunk;
+            renderMessages();
+            if (atBottom) scrollToBottom('auto');
+          }
+        );
+
+        // De AI heeft de eerste vraag nu succesvol beantwoord -> Genereer automatisch een titel
+        if (isFirstMessage) {
+          await generateChatTitle(text);
+        }
+      } catch (err) {
+        replyMsg.content = `Foutmelding: ${err.message}`;
+        replyMsg.error = true;
+        renderMessages();
+      } finally {
+        isGenerating = false;
+        renderMessages();
+        atBottom = true;
+        setTimeout(() => scrollToBottom(), 0);
+      }
+    }
+
+    async function regenerate() {
+      const active = conversations.find(c => c.id === activeId);
+      if (!active || isGenerating) return;
+      const lastUser = [...active.messages].reverse().find(m => m.role === 'user');
+      if (!lastUser) return;
+
+      const msgs = active.messages;
+      if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') msgs.pop();
+
+      isGenerating = true;
+      renderMessages();
+      atBottom = true;
+      setTimeout(() => scrollToBottom(), 0);
+
+      const replyMsg = { id: msgId++, role: 'assistant', content: '' };
+      msgs.push(replyMsg);
+
+      try {
+        await fetchCompletionStream(
+          active.messages.slice(0, -1),
+          currentModel,
+          (chunk) => {
+            replyMsg.content += chunk;
+            renderMessages();
+            if (atBottom) scrollToBottom('auto');
+          }
+        );
+      } catch (err) {
+        replyMsg.content = `Foutmelding: ${err.message}`;
+        replyMsg.error = true;
+        renderMessages();
+      } finally {
+        isGenerating = false;
+        renderMessages();
+        atBottom = true;
+        setTimeout(() => scrollToBottom(), 0);
+      }
+    }
+
+    function copyMessage(msgId) {
+      const active = conversations.find(c => c.id === activeId);
+      const msg = active?.messages.find(m => m.id === msgId);
+      if (msg) {
+        document.execCommand('copy'); 
+        navigator.clipboard.writeText(msg.content).then(() => {
+          const btn = document.activeElement;
+          if (btn) {
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-green-400"></i>';
+            refreshIcons();
+            setTimeout(() => {
+              btn.innerHTML = original;
+              refreshIcons();
+            }, 1500);
+          }
+        });
+      }
+    }
+
+    // ===== Settings Panel Operations =====
+    function openSettings() {
+      settingsOpen = true;
+      els.settingsModal.classList.remove('hidden');
+      els.keyGroq.value = apiKeys.groq;
+      els.systemPrompt.value = systemPrompt;
+      renderSettingsModels();
+      checkAndFetchModels();
+      els.saveText.classList.remove('hidden');
+      els.saveCheck.classList.add('hidden');
+      refreshIcons();
+    }
+
+    function closeSettings() {
+      settingsOpen = false;
+      els.settingsModal.classList.add('hidden');
+    }
+
+    function saveSettings() {
+      apiKeys = { groq: els.keyGroq.value.trim() };
+      systemPrompt = els.systemPrompt.value;
+      saveStorage();
+
+      els.saveText.classList.add('hidden');
+      els.saveCheck.classList.remove('hidden');
+      refreshIcons();
+      
+      // Sluit direct de instellingen na opslaan met een mini-vertraging voor een soepel gevoel
+      setTimeout(() => {
+        closeSettings();
+      }, 300);
+    }
+
+    function addModel() {
+      const name = els.modelFetchedSelect.value;
+      if (!name || customModels.includes(name)) return;
+      customModels.push(name);
+      saveStorage();
+      renderSettingsModels();
+      renderModelSelect();
+    }
+
+    function removeModel(name) {
+      customModels = customModels.filter(m => m !== name);
+      saveStorage();
+      renderSettingsModels();
+      renderModelSelect();
+    }
+
+    function bindEvents() {
+      els.modalBackdrop.addEventListener('click', closeSettings);
+      els.modalClose.addEventListener('click', closeSettings);
+      els.btnSaveSettings.addEventListener('click', saveSettings);
+      els.btnAddModel.addEventListener('click', addModel);
+
+      els.keyGroq.addEventListener('input', () => {
+        const key = els.keyGroq.value.trim();
+        if (key.length > 10) {
+          checkAndFetchModels();
+        } else {
+          els.modelFetchedSelect.disabled = true;
+          els.modelFetchedSelect.innerHTML = '<option value="">Voer eerst Groq API Key in...</option>';
+          els.btnAddModel.disabled = true;
+        }
+      });
+
+      els.chatInput.addEventListener('input', () => {
+        els.btnSend.disabled = !currentModel || !els.chatInput.value.trim();
+        els.chatInput.style.height = 'auto';
+        els.chatInput.style.height = Math.min(els.chatInput.scrollHeight, 160) + 'px';
+      });
+
+      els.chatInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          if (e.isComposing || e.keyCode === 229) return;
+          e.preventDefault();
+          if (currentModel) sendMessage();
+        }
+      });
+
+      els.btnSend.addEventListener('click', sendMessage);
+
+      // Inline model selector events
+      els.modelSelectBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleModelDropdown();
+      });
+      els.modelDropdown.addEventListener('click', (e) => {
+        const item = e.target.closest('.model-dropdown-item');
+        if (item) selectModel(item.dataset.model);
+      });
+      document.addEventListener('click', (e) => {
+        if (!els.modelSelectWrapper.contains(e.target)) closeModelDropdown();
+      });
+
+      els.chatScroll.addEventListener('scroll', handleScroll);
+      els.btnScrollBottom.addEventListener('click', () => scrollToBottom());
+
+      // Password eye visual state togglers
+      document.querySelectorAll('.btn-toggle-eye').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.dataset.target;
+          const input = document.getElementById(targetId);
+          const eye = btn.querySelector('.icon-eye');
+          const eyeOff = btn.querySelector('.icon-eye-off');
+          if (input.type === 'password') {
+            input.type = 'text';
+            eye.classList.add('hidden');
+            eyeOff.classList.remove('hidden');
+          } else {
+            input.type = 'password';
+            eye.classList.remove('hidden');
+            eyeOff.classList.add('hidden');
+          }
+        });
+      });
+
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && settingsOpen) closeSettings();
+      });
+    }
+
+    // ===== App Initialization =====
+    function init() {
+      cacheEls();
+      loadStorage();
+
+      conversations = [createConversation()];
+      activeId = conversations[0].id;
+
+      renderSidebar();
+      renderMessages();
+      renderModelSelect();
+      bindEvents();
+      refreshIcons();
+    }
+
+    // Expose functions globally for dynamic inline actions
+    window.selectChat = selectChat;
+    window.newChat = newChat;
+    window.deleteChat = deleteChat;
+    window.togglePin = togglePin;
+    window.startRename = startRename;
+    window.regenerate = regenerate;
+    window.copyMessage = copyMessage;
+    window.removeModel = removeModel;
+    window.startTool = startTool;
+    window.showHome = showHome;
+    window.toggleSidebarMobile = toggleSidebarMobile;
+    window.openSettings = openSettings;
+    window.triggerFileUpload = triggerFileUpload;
+    window.handleFileSelection = handleFileSelection;
+
+    // Start
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
